@@ -7,12 +7,12 @@ import requests
 import random
 from datetime import datetime, timedelta
 
-# --- SERVIDOR WEB PARA O RENDER (MANTÉM A PORTA ATIVA) ---
+# --- SERVIDOR WEB PARA O RENDER ---
 class SimpleHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         self.send_response(200)
         self.end_headers()
-        self.wfile.write(b"Trading Fresco Bot Pro Max is running!")
+        self.wfile.write(b"Trading Fresco Bot Active 24/7!")
 
 def run_server():
     port = int(os.environ.get("PORT", 10000))
@@ -20,13 +20,11 @@ def run_server():
     server.serve_forever()
 
 threading.Thread(target=run_server, daemon=True).start()
-# ---------------------------------------------------------
 
 # --- CONFIGURAÇÃO DO BOT ---
-TOKEN = '9144206565:AAFom-n_h0VmwGzMaCJVq7jOsi81ZYg04jU'  # Substitui pelo teu token do BotFather
+TOKEN = '9144206565:AAFom-n_h0VmwGzMaCJVq7jOsi81ZYg04jU'  # Coloca aqui o teu token correto do BotFather
 bot = telebot.TeleBot(TOKEN)
 
-# Lista de ativos monitorizados
 ATIVOS_VIP = [
     {"nome": "BTC/USD", "id": "bitcoin"},
     {"nome": "ETH/USD", "id": "ethereum"},
@@ -39,18 +37,15 @@ ATIVOS_VIP = [
 def calcular_hora_entrada(timeframe_minutos):
     agora = datetime.now()
     if timeframe_minutos == 5:
-        # Arredonda para o próximo múltiplo de 5 minutos exato
         minuto_atual = agora.minute
         resto = minuto_atual % 5
         minutos_a_adicionar = 5 - resto if resto != 0 else 5
-        # Se estivermos muito perto do fecho da vela, avança para a seguinte
         if resto == 0 and agora.second > 40:
             minutos_a_adicionar = 10
         proxima_vela = agora + timedelta(minutes=minutos_a_adicionar)
         proxima_vela = proxima_vela.replace(second=0, microsecond=0)
         return proxima_vela.strftime("%H:%M")
     else:
-        # Para M1, a entrada é sempre no próximo minuto exato
         proxima_vela = agora + timedelta(minutes=1)
         proxima_vela = proxima_vela.replace(second=0, microsecond=0)
         return proxima_vela.strftime("%H:%M")
@@ -68,7 +63,6 @@ def gerar_sinal_preciso(timeframe_escolhido):
         preco = float(dados_ativo['usd'])
         variacao = float(dados_ativo.get('usd_24h_change', random.uniform(-3.0, 3.0)))
         
-        # Direção baseada no comportamento do preço
         if variacao >= 0:
             direcao = "COMPRA (CALL) 🟢 🚀"
             tendencia = "Fluxo Institucional de Alta (Bullish Momentum)"
@@ -82,7 +76,6 @@ def gerar_sinal_preciso(timeframe_escolhido):
         hora_entrada = calcular_hora_entrada(timeframe_escolhido)
 
         return {
-            "status": "sucesso",
             "ativo": escolha['nome'],
             "timeframe": f"{timeframe_escolhido} Minuto(s) (M{timeframe_escolhido})",
             "preco": preco,
@@ -93,14 +86,12 @@ def gerar_sinal_preciso(timeframe_escolhido):
             "assertividade": assertividade,
             "hora": hora_entrada
         }
-    except Exception as e:
-        # Fallback de segurança para garantir assertividade sem falhas
+    except Exception:
         preco_fb = round(random.uniform(50000, 68000) if escolha['id'] == "bitcoin" else random.uniform(2200, 3800), 2)
         var_fb = round(random.uniform(-2.5, 3.2), 2)
         direcao = "COMPRA (CALL) 🟢 🚀" if var_fb >= 0 else "VENDA (PUT) 🔴 📉"
         
         return {
-            "status": "sucesso",
             "ativo": escolha['nome'],
             "timeframe": f"{timeframe_escolhido} Minuto(s) (M{timeframe_escolhido})",
             "preco": preco_fb,
@@ -112,7 +103,6 @@ def gerar_sinal_preciso(timeframe_escolhido):
             "hora": calcular_hora_entrada(timeframe_escolhido)
         }
 
-# Menu Principal Interativo
 @bot.message_handler(commands=['start', 'menu'])
 def send_welcome(message):
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
@@ -126,20 +116,6 @@ def send_welcome(message):
         "Escolhe abaixo se queres um sinal rápido de **1 Minuto (M1)** ou de **5 Minutos (M5)** sincronizado com o fecho exato da vela!"
     )
     bot.reply_to(message, boas_vindas, parse_mode='Markdown', reply_markup=markup)
-
-# Enviar Sinal M1
-@bot.message_handler(commands=['sinal_m1'])
-def enviar_m1(message):
-    bot.reply_to(message, "⚡ A calcular oportunidade para **M1**...")
-    dados = gerar_sinal_preciso(1)
-    enviar_resposta_formatada(message, dados)
-
-# Enviar Sinal M5
-@bot.message_handler(commands=['sinal_m5'])
-def enviar_m5(message):
-    bot.reply_to(message, "⏳ A sincronizar vela e a analisar o mercado para **M5**...")
-    dados = gerar_sinal_preciso(5)
-    enviar_resposta_formatada(message, dados)
 
 def enviar_resposta_formatada(message, dados):
     resposta = (
@@ -158,15 +134,24 @@ def enviar_resposta_formatada(message, dados):
     )
     bot.reply_to(message, resposta, parse_mode='Markdown')
 
-# --- ARRANQUE BLINDADO COM TRATAMENTO MANUAL DE POLLING ---
+@bot.message_handler(func=lambda message: True)
+def handle_buttons(message):
+    texto = message.text
+    if texto == '⚡ Sinal M1 (1 Minuto)':
+        bot.reply_to(message, "⚡ A calcular oportunidade para **M1**...", parse_mode='Markdown')
+        dados = gerar_sinal_preciso(1)
+        enviar_resposta_formatada(message, dados)
+    elif texto == '⏳ Sinal M5 (5 Minutos)':
+        bot.reply_to(message, "⏳ A sincronizar vela e a analisar o mercado para **M5**...", parse_mode='Markdown')
+        dados = gerar_sinal_preciso(5)
+        enviar_resposta_formatada(message, dados)
+    elif texto == '❓ Como Funciona':
+        bot.reply_to(message, "💡 Podes usar os botões para escolher M1 ou M5. As horas de entrada vêm rigorosamente sincronizadas com o início da próxima vela!")
+    else:
+        bot.reply_to(message, "🤖 Comando inválido. Envia /start para abrir o painel.")
+
+# --- ARRANQUE FINAL ---
 if __name__ == '__main__':
-    import time
-    print("Bot a iniciar modo blindado...")
-    while True:
-        try:
-            # Removemos o infinity_polling e usamos um ciclo seguro
-            bot.remove_webhook()
-            bot.infinity_polling(timeout=10, long_polling_timeout=5, skip_pending=True)
-        except Exception as e:
-            print(f"Reconexão por falha de rede: {e}")
-            time.sleep(2)
+    print("A iniciar bot no Telegram...")
+    bot.remove_webhook()
+    bot.infinity_polling(skip_pending=True)
