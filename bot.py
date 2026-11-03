@@ -150,8 +150,14 @@ def handle_buttons(message):
     else:
         bot.reply_to(message, "🤖 Comando inválido. Envia /start para abrir o painel.")
 
-# --- ARRANQUE FINAL ---
+# --- ARRANQUE BLINDADO CONTRA CONFLITOS (409) ---
 if __name__ == '__main__':
-    print("A iniciar bot no Telegram...")
-    bot.remove_webhook()
-    bot.infinity_polling(skip_pending=True)
+    print("A limpar webhooks e instâncias anteriores...")
+    try:
+        bot.remove_webhook()
+    except Exception:
+        pass
+    
+    print("Bot a iniciar modo operacional no Telegram...")
+    bot.infinity_polling(skip_pending=True, interval=1, timeout=20)
+
