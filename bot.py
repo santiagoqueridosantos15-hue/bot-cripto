@@ -171,13 +171,13 @@ def handle_buttons(message):
     else:
         bot.reply_to(message, "🤖 Comando inválido. Envia /start para abrir o painel.")
 
-# Em vez de apenas bot.infinity_polling(), podes usar assim:
+# --- ARRANQUE BLINDADO CONTRA TIMEOUTS ---
 if __name__ == '__main__':
+    import time
     while True:
         try:
-            bot.infinity_polling(timeout=60, long_polling_timeout=60)
+            # Timeout mais curto para evitar bloqueios de rede na cloud do Render
+            bot.infinity_polling(timeout=20, long_polling_timeout=5)
         except Exception as e:
-            print(f"Erro de conexão detetado: {e}. A tentar reconectar em 5 segundos...")
-            import time
-            time.sleep(5)
-
+            print(f"Aviso de rede detetado: {e}. A reconectar em 3 segundos...")
+            time.sleep(3)
