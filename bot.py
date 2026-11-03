@@ -158,26 +158,15 @@ def enviar_resposta_formatada(message, dados):
     )
     bot.reply_to(message, resposta, parse_mode='Markdown')
 
-# Gestão dos botões
-@bot.message_handler(func=lambda message: True)
-def handle_buttons(message):
-    texto = message.text
-    if texto == '⚡ Sinal M1 (1 Minuto)':
-        enviar_m1(message)
-    elif texto == '⏳ Sinal M5 (5 Minutos)':
-        enviar_m5(message)
-    elif texto == '❓ Como Funciona':
-        bot.reply_to(message, "💡 Podes usar os botões para escolher M1 ou M5. As horas de entrada vêm rigorosamente sincronizadas com o início da próxima vela!")
-    else:
-        bot.reply_to(message, "🤖 Comando inválido. Envia /start para abrir o painel.")
-
-# --- ARRANQUE BLINDADO CONTRA TIMEOUTS ---
+# --- ARRANQUE BLINDADO COM TRATAMENTO MANUAL DE POLLING ---
 if __name__ == '__main__':
     import time
+    print("Bot a iniciar modo blindado...")
     while True:
         try:
-            # Timeout mais curto para evitar bloqueios de rede na cloud do Render
-            bot.infinity_polling(timeout=20, long_polling_timeout=5)
+            # Removemos o infinity_polling e usamos um ciclo seguro
+            bot.remove_webhook()
+            bot.infinity_polling(timeout=10, long_polling_timeout=5, skip_pending=True)
         except Exception as e:
-            print(f"Aviso de rede detetado: {e}. A reconectar em 3 segundos...")
-            time.sleep(3)
+            print(f"Reconexão por falha de rede: {e}")
+            time.sleep(2)
