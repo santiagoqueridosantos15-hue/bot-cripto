@@ -171,4 +171,13 @@ def handle_buttons(message):
     else:
         bot.reply_to(message, "🤖 Comando inválido. Envia /start para abrir o painel.")
 
-bot.infinity_polling()
+# Em vez de apenas bot.infinity_polling(), podes usar assim:
+if __name__ == '__main__':
+    while True:
+        try:
+            bot.infinity_polling(timeout=60, long_polling_timeout=60)
+        except Exception as e:
+            print(f"Erro de conexão detetado: {e}. A tentar reconectar em 5 segundos...")
+            import time
+            time.sleep(5)
+
