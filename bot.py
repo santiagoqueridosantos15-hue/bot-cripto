@@ -22,7 +22,7 @@ def run_server():
 threading.Thread(target=run_server, daemon=True).start()
 
 # --- CONFIGURAÇÃO DO BOT ---
-TOKEN = '9144206565:AAFom-n_h0VmwGzMaCJVq7jOsi81ZYg04jU'  # Coloca aqui o teu token correto do BotFather
+TOKEN = '9127242902:AAHoLwLHet8WN6vOc5A_8zfQb98hiUkbam4'  # Coloca aqui o teu token correto do BotFather
 bot = telebot.TeleBot(TOKEN)
 
 ATIVOS_VIP = [
