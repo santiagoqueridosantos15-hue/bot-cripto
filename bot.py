@@ -25,8 +25,8 @@ bot = telebot.TeleBot(TOKEN)
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
     bot.reply_to(message, "🤖 Bot a funcionar!")
-    @bot.message_handler(commands=['analisar'])
-func def send_analysis(message):
+  @bot.message_handler(commands=['analisar'])
+def send_analysis(message):
     bot.reply_to(message, "🔍 A analisar o mercado...\n\n💎 SINAL: BTC/USD\nDireção: COMPRA (CALL)\nAssertividade: 92.2%")
 
 
