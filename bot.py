@@ -47,7 +47,7 @@ def gerar_analise_profissional():
         if variacao > 0:
             direcao = "COMPRA (CALL) 🟢 🚀"
             tendencia = "Tendência de Alta / Bullish com Fluxo Institucional"
-             padrao = "Rompimento de Resistência com Volume Crescente"
+            padrao = "Rompimento de Resistência com Volume Crescente"
         else:
             direcao = "VENDA (PUT) 🔴 📉"
             tendencia = "Tendência de Baixa / Bearish com Pressão Vendedora"
